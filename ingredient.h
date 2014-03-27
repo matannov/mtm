@@ -37,6 +37,12 @@
 		
 #define IF_NOT_BETWEEN(val,min,max) \
 		if ((min > val) || (val > max))
+		
+#define IF_IS_NULL(val) \
+	if (val == NULL)
+	
+#define IF_NOT(val) \
+	if (!(val))
 
 typedef enum {
 	MEATY, MILKY, PARVE

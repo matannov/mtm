@@ -85,7 +85,6 @@ static bool testChangeCost() {
 
 static bool testGetQuality() {
 	Ingredient ing = ingredientInitialize("A", MEATY, 400, 6, 1, NULL);
-
 	ASSERT_EQUALS(ingredientGetQuality(ing), 4);
 
 	return true;
