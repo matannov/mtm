@@ -19,38 +19,38 @@ typedef enum {
 
 Ingredient ingredientInitialize(const char* name, KosherType kosherType,
 		int calories, int health, double cost, IngredientResult* result)	{
-		Ingredient * newIngredient = (Ingredient *)malloc(sizeof(Ingredient));
+		Ingredient newIngredient;
 		IF_IS_NULL(name) {
 			SET_RESULT(INGREDIENT_NULL_ARGUMENT,result)
-			return *newIngredient;
+			return newIngredient;
 		}
 		IF_NOT_BETWEEN(strlen(name),0,INGREDIENT_MAX_NAME_LENGTH) {
 			SET_RESULT(INGREDIENT_BAD_NAME,result)
-			return *newIngredient;
+			return newIngredient;
 		}
 		IF_NOT_BETWEEN(kosherType,0,INGREDIENT_KOSHER_TYPE_VALUES-1) {
 			SET_RESULT(INGREDIENT_BAD_KOSHER_TYPE,result)
-			return *newIngredient;
+			return newIngredient;
 		}
 		IF_NOT_BETWEEN(calories,INGREDIENT_MIN_CALORIES,INGREDIENT_MAX_CALORIES) {
 			SET_RESULT(INGREDIENT_BAD_CALORIES,result)
-			return *newIngredient;
+			return newIngredient;
 		}
 		IF_NOT_BETWEEN(health,INGREDIENT_MIN_HEALTH,INGREDIENT_MAX_HEALTH) {
 			SET_RESULT(INGREDIENT_BAD_HEALTH,result)
-			return *newIngredient;
+			return newIngredient;
 		}
 		if (cost <= 0) {
 			SET_RESULT(INGREDIENT_BAD_COST,result)
-			return *newIngredient;
+			return newIngredient;
 		}
-		strcpy(newIngredient->name,name);
-		newIngredient->kosherType = kosherType;
-		newIngredient->calories = calories;
-		newIngredient->health = health;
-		newIngredient->cost = cost;
+		strcpy(newIngredient.name,name);
+		newIngredient.kosherType = kosherType;
+		newIngredient.calories = calories;
+		newIngredient.health = health;
+		newIngredient.cost = cost;
 		SET_RESULT(INGREDIENT_SUCCESS,result)
-		return *newIngredient;
+		return newIngredient;
 }
 
 IngredientResult ingredientGetName(Ingredient ingredient, char* buffer, int length)	{
