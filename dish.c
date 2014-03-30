@@ -47,10 +47,13 @@ Dish dishCreate(const char* name, const char* cook, int maxIngredients) {
 	strcpy(dish->cook,cook);
 	dish->maxIngredients = maxIngredients;
 	
-	dish->ingredients = (Ingredient*)malloc(sizeof(Ingredient)*maxIngredients);
+	dish->ingredients = (Ingredient**)malloc(sizeof(Ingredient*)*maxIngredients);
 	IF_IS_NULL(dish->ingredients) {
 		dishDestroy(dish);
 		return NULL;
+	}
+	for (int i=0;i<maxIngredients;i++) {
+		dish->ingredients[i] = NULL;
 	}
 	return dish;
 }
@@ -58,6 +61,47 @@ Dish dishCreate(const char* name, const char* cook, int maxIngredients) {
 void dishDestroy(Dish dish) {
 	SAFE_FREE(dish->name);
 	SAFE_FREE(dish->cook);
+	for (int i=0;i<dish->maxIngredients;i++) {
+		SAFE_FREE(dish->ingredients[i]);
+	}
 	SAFE_FREE(dish->ingredients);
 	SAFE_FREE(dish);
+}
+
+Dish dishClone(Dish source) {
+	IF_IS_NULL(source) {
+		return NULL;
+	}
+	IF_IS_NULL(source->name) {
+		return NULL;
+	}
+	IF_IS_NULL(source->cook) {
+		return NULL;
+	}
+	Dish dish = dishCreate(source->name,source->cook,source->maxIngredients);
+	Ingredient ingredient;
+	Ingredient sourceIngredient;
+	IngredientResult result = INGREDIENT_SUCCESS;
+	char name[INGREDIENT_MAX_NAME_LENGTH+1];
+	for (int i=0;i<source->maxIngredients;i++) {
+		if (source->ingredients[i] != NULL) {
+			sourceIngredient = *(source->ingredients[i]);
+			dish->ingredients[i] = (Ingredient*)malloc(sizeof(Ingredient));
+			
+			result = ingredientGetName(sourceIngredient,name,INGREDIENT_MAX_NAME_LENGTH);
+			if (result != INGREDIENT_SUCCESS) {
+				dishDestroy(dish);
+				return NULL;
+			}
+			
+			ingredient = ingredientInitialize(name, sourceIngredient.kosherType,
+							sourceIngredient.calories, sourceIngredient.health, sourceIngredient.cost, &result);
+			if (result != INGREDIENT_SUCCESS) {
+				dishDestroy(dish);
+				return NULL;
+			}
+			*(dish->ingredients[i]) = ingredient;  // honestly unsure if part or all of this will disappear once we exit scope
+		}
+	}
+	return dish;
 }

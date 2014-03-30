@@ -81,7 +81,6 @@ static bool testDestroy() {
 	ASSERT_NO_CRASH(dishDestroy(food)); //actually not sure what should happen in this case, but I'm pretty sure it shouldn't crash
 	return true;
 }
-/* move this as more functions are implemented
 //TODO: add more tests 
 static bool testClone() {
 
@@ -90,15 +89,17 @@ static bool testClone() {
 	Dish cpy = dishClone(src);
 	ASSERT_NOT_NULL(cpy);
 
-	char* name;
+	/*char* name;
 	ASSERT_SUCCESS(dishGetName(cpy, &name));
 	ASSERT_STRING_EQUALS(name, "Micky on a Stick");
 
-	free(name);
+	free(name);*/
+	
 	dishDestroy(cpy);
 	dishDestroy(src);
 	return true;
 }
+/* move this as more functions are implemented
 
 //TODO: add more tests
 static bool testAddIngredient() {
@@ -300,8 +301,8 @@ int main() {
 	 * 		Unfortunately, the suprise will not include bonus points... :/
 	 */
 	RUN_TEST(testCreate);
-	RUN_TEST(testDestroy);/*
-	RUN_TEST(testClone);
+	RUN_TEST(testDestroy);
+	RUN_TEST(testClone);/*
 	RUN_TEST(testAddIngredient);
 	RUN_TEST(testRemoveIngredient);
 	RUN_TEST(testGetName);
