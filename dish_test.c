@@ -99,7 +99,6 @@ static bool testClone() {
 	dishDestroy(src);
 	return true;
 }
-/* move this as more functions are implemented
 
 //TODO: add more tests
 static bool testAddIngredient() {
@@ -288,7 +287,7 @@ static bool testIsBetter() {
 	dishDestroy(dish2);
 	return true;
 }
-*/
+
 int main() {
 
 	/* TODO: read
@@ -302,7 +301,7 @@ int main() {
 	 */
 	RUN_TEST(testCreate);
 	RUN_TEST(testDestroy);
-	RUN_TEST(testClone);/*
+	RUN_TEST(testClone);
 	RUN_TEST(testAddIngredient);
 	RUN_TEST(testRemoveIngredient);
 	RUN_TEST(testGetName);
@@ -312,7 +311,7 @@ int main() {
 	RUN_TEST(testTaste);
 	RUN_TEST(testHowMuchTasty);
 	RUN_TEST(testGetQuality);
-	RUN_TEST(testIsBetter);*/
+	RUN_TEST(testIsBetter);
 
 	return 0;
 }

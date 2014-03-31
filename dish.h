@@ -18,6 +18,11 @@
 		free(val); \
 	}
 
+#define NULL_ARG(val) \
+	IF_IS_NULL(val) { \
+		return DISH_NULL_ARGUMENT; \
+	}
+
 /*******************************************************************************
  * Dish Struct
  ******************************************************************************/
@@ -25,8 +30,11 @@ typedef struct dish_t {
 	/* adding properties as I go along */
 	char * name;
 	char * cook;
-	int maxIngredients;
 	Ingredient ** ingredients;
+	int maxIngredients;
+	int currentIngredients;
+	int tasted;
+	int liked;
 }* Dish;
 
 /*******************************************************************************
