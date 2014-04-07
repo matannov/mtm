@@ -52,6 +52,9 @@ Dish dishCreate(const char* name, const char* cook, int maxIngredients) {
 }
 
 void dishDestroy(Dish dish) {
+	if (dish == NULL) {
+		return;
+	}
 	SAFE_FREE(dish->name);
 	SAFE_FREE(dish->cook);
 	for (int i=0;i<dish->maxIngredients;i++) {
@@ -79,7 +82,7 @@ Dish dishClone(Dish source) {
 	for (int i=0;i<source->maxIngredients;i++) {
 		if (source->ingredients[i] != NULL) {
 			sourceIngredient = *(source->ingredients[i]);
-			dish->ingredients[i] = (Ingredient*)malloc(sizeof(Ingredient));
+			
 			
 			result = ingredientGetName(sourceIngredient,name,INGREDIENT_MAX_NAME_LENGTH);
 			if (result != INGREDIENT_SUCCESS) {
@@ -93,7 +96,10 @@ Dish dishClone(Dish source) {
 				dishDestroy(dish);
 				return NULL;
 			}
-			*(dish->ingredients[i]) = ingredientClone(ingredient);
+			if (dishAddIngredient(dish,ingredient) != DISH_SUCCESS) {
+				dishDestroy(dish);
+				return NULL;
+			}
 		}
 	}
 	return dish;

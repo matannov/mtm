@@ -1,80 +1,114 @@
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <stdbool.h>
 #include "ingredient.h"
 
+//IN_RANGE macro is not limited to a certain type
+#define IN_RANGE(value, min, max) \
+	(((value) >= (min) && (value) <= (max)) ? true : false)
+	
+#define NULL_ARG(val) \
+	if (val == NULL) {	return INGREDIENT_NULL_ARGUMENT;	}
 
-/*
-typedef enum {
-	INGREDIENT_SUCCESS,			 Operation succeeded 						  
-	INGREDIENT_NULL_ARGUMENT,	 A NULL argument was passed 				  
-	INGREDIENT_BAD_NAME,		 An invalid name was passed				  
-	INGREDIENT_BAD_KOSHER_TYPE,	 An invalid kosher type was passed		  
-	INGREDIENT_BAD_CALORIES,	 An invalid calories number was passed	  
-	INGREDIENT_BAD_HEALTH,		 An invalid health number was passed		  
-	INGREDIENT_BAD_COST,		 An invalid cost value was passed			  
-	INGREDIENT_BAD_DISCOUNT,	 An invalid discount value was passed		  
-	INGREDIENT_SMALL_BUFFER	     The passed buffer is too small			  
-} IngredientResult; */
-
-Ingredient ingredientInitialize(const char* name, KosherType kosherType,
-		int calories, int health, double cost, IngredientResult* result)	{
-		Ingredient newIngredient;
-		IF_IS_NULL(name) {
-			SET_RESULT(INGREDIENT_NULL_ARGUMENT,result)
-			return newIngredient;
-		}
-		IF_NOT_BETWEEN(strlen(name),0,INGREDIENT_MAX_NAME_LENGTH) {
-			SET_RESULT(INGREDIENT_BAD_NAME,result)
-			return newIngredient;
-		}
-		IF_NOT_BETWEEN(kosherType,0,INGREDIENT_KOSHER_TYPE_VALUES-1) {
-			SET_RESULT(INGREDIENT_BAD_KOSHER_TYPE,result)
-			return newIngredient;
-		}
-		IF_NOT_BETWEEN(calories,INGREDIENT_MIN_CALORIES,INGREDIENT_MAX_CALORIES) {
-			SET_RESULT(INGREDIENT_BAD_CALORIES,result)
-			return newIngredient;
-		}
-		IF_NOT_BETWEEN(health,INGREDIENT_MIN_HEALTH,INGREDIENT_MAX_HEALTH) {
-			SET_RESULT(INGREDIENT_BAD_HEALTH,result)
-			return newIngredient;
-		}
-		if (cost <= 0) {
-			SET_RESULT(INGREDIENT_BAD_COST,result)
-			return newIngredient;
-		}
-		strcpy(newIngredient.name,name);
-		newIngredient.kosherType = kosherType;
-		newIngredient.calories = calories;
-		newIngredient.health = health;
-		newIngredient.cost = cost;
-		SET_RESULT(INGREDIENT_SUCCESS,result)
-		return newIngredient;
+/*******************************************************************************
+ * static internal functions
+ ******************************************************************************/
+static bool isValidName(const char* name) {
+	int const INGREDIENT_MIN_NAME_LENGTH = 1;
+	return IN_RANGE(strlen(name), INGREDIENT_MIN_NAME_LENGTH, 
+		INGREDIENT_MAX_NAME_LENGTH);
 }
 
-IngredientResult ingredientGetName(Ingredient ingredient, char* buffer, int length)	{
-	IF_IS_NULL(buffer) {
-		return INGREDIENT_NULL_ARGUMENT;
-	}
-	IF_IS_NULL(ingredient.name) {
+static bool isValidKosherType(KosherType kosherType) {
+	int const KOSHER_FIRST_VALUE = 0;
+	return IN_RANGE(kosherType, KOSHER_FIRST_VALUE, 
+		INGREDIENT_KOSHER_TYPE_VALUES-1);
+}
+
+static bool isValidCalories(int calories) {
+	return IN_RANGE(calories, INGREDIENT_MIN_CALORIES,
+		INGREDIENT_MAX_CALORIES);
+}
+
+static bool isValidHealth(int health) {
+	return IN_RANGE(health, INGREDIENT_MIN_HEALTH, INGREDIENT_MAX_HEALTH);
+}
+
+static bool isValidCost(double cost) {
+	double const INGREDIENT_MIN_COST = 0.0;
+	return (isfinite(cost) && cost >= INGREDIENT_MIN_COST);
+}
+
+static IngredientResult checkInputForInitialize(const char* name, KosherType 
+	kosherType, int calories, int health, double cost) {
+
+	NULL_ARG(name)
+
+	if(!isValidName(name)) {
 		return INGREDIENT_BAD_NAME;
 	}
-	if (strlen(ingredient.name) > length) {
+	if(!isValidKosherType(kosherType)) {
+		return INGREDIENT_BAD_KOSHER_TYPE;
+	}
+	if(!isValidCalories(calories)) {
+		return INGREDIENT_BAD_CALORIES;
+	}
+	if(!isValidHealth(health)) {
+		return INGREDIENT_BAD_HEALTH;
+	}
+	if(!isValidCost(cost)) {
+		return INGREDIENT_BAD_COST;
+	}
+	return INGREDIENT_SUCCESS;
+}
+
+/*******************************************************************************
+ * interface functions
+ ******************************************************************************/
+
+Ingredient ingredientInitialize(const char* name, KosherType kosherType,
+	int calories, int health, double cost, IngredientResult* result) {
+
+	Ingredient newIngredient;
+	IngredientResult tempResult;
+	tempResult = checkInputForInitialize(name, kosherType, 
+		calories, health, cost);
+	if(result != NULL) {
+		*result = tempResult;
+	}
+	if(tempResult != INGREDIENT_SUCCESS) {
+		return newIngredient;
+	}
+	
+	strcpy(newIngredient.name, name);
+	newIngredient.kosherType = kosherType;
+	newIngredient.calories = calories;
+	newIngredient.health = health;
+	newIngredient.cost = cost;
+
+	return newIngredient;
+}
+
+IngredientResult ingredientGetName(Ingredient ingredient, char* buffer, 
+	int length) {
+	NULL_ARG(buffer)
+	
+	if(length < 0 || strlen(ingredient.name) + 1 > length) {
 		return INGREDIENT_SMALL_BUFFER;
 	}
+
 	strcpy(buffer,ingredient.name);
 	return INGREDIENT_SUCCESS;
 }
 
 IngredientResult ingredientChangeCost(Ingredient* ingredient, double cost, int discount)	{
-	IF_IS_NULL(ingredient) {
-		return INGREDIENT_NULL_ARGUMENT;
-	}
-	if ((cost <= 0) || (cost*(1-(discount*0.01)) <= 0)) {
+	NULL_ARG(ingredient)
+	
+	if (!isValidCost(cost)) {
 		return INGREDIENT_BAD_COST;
 	}
 	IF_NOT_BETWEEN(discount,0,100) {
-		return INGREDIENT_BAD_DISCOUNT;
-	}
-	if (!DOUBLE_EQUALS(floor(discount),discount)) { // dunno if we can use -lm for math.h, might have to find another way to test for integer
 		return INGREDIENT_BAD_DISCOUNT;
 	}
 	ingredient->cost = cost*(1-(discount*0.01));

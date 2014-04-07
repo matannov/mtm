@@ -34,8 +34,9 @@
 #define ASSERT_FULL(expr) ASSERT_EQUALS(expr, DISH_IS_FULL)
 #define ASSERT_INGREDIENT_NOT_FOUND(expr) ASSERT_EQUALS(expr, DISH_INGREDIENT_NOT_FOUND)
 #define ASSERT_EMPTY(expr) ASSERT_EQUALS(expr, DISH_IS_EMPTY)
+#define ASSERT_NEVER_TASTED(expr) ASSERT_EQUALS(expr, DISH_NEVER_TASTED)
+#define ASSERT_ALREADY_TASTED(expr) ASSERT_EQUALS(expr, DISH_ALREADY_TASTED)
 
-//TODO: add more tests
 static bool testCreate() {
 	ASSERT_NULL(dishCreate(NULL,NULL,0));
 	ASSERT_NULL(dishCreate(NULL,NULL,1));
@@ -60,14 +61,11 @@ static bool testCreate() {
 	char * name2 = (char*)malloc(sizeof(char)*4);
 	strcpy(name2,"ttl");
 	free(name1);
-	//ASSERT_NULL(dishCreate(name1,name2,2)); no idea if this can be made not to crash
 	free(name2);
-	//ASSERT_NULL(dishCreate(name1,name2,2));
 	
 	return true;
 }
 
-//TODO: add more tests
 static bool testDestroy() {
 
 	ASSERT_NO_CRASH(dishDestroy(dishCreate("Soup", "Dor", 4)));
@@ -81,28 +79,54 @@ static bool testDestroy() {
 	ASSERT_NO_CRASH(dishDestroy(food)); //actually not sure what should happen in this case, but I'm pretty sure it shouldn't crash
 	return true;
 }
-//TODO: add more tests 
+ 
 static bool testClone() {
 
 	Dish src = dishCreate("Micky on a Stick", "Micky", 3);
 
+	
 	Dish cpy = dishClone(src);
 	ASSERT_NOT_NULL(cpy);
-
-	/*char* name;
+	
+	char* name;
 	ASSERT_SUCCESS(dishGetName(cpy, &name));
 	ASSERT_STRING_EQUALS(name, "Micky on a Stick");
 
-	free(name);*/
+	free(name);
 	
 	dishDestroy(cpy);
 	dishDestroy(src);
+	
+	src = dishCreate("test dish please ignore","disco ball", 2);
+	
+	Ingredient ing = ingredientInitialize("tender loins", MEATY, 1, 2, 3, NULL);
+	ASSERT_SUCCESS(dishAddIngredient(src,ing));
+	dishTaste(src,true);
+	
+	cpy = dishClone(src);
+	
+	ASSERT_NOT_NULL(cpy);
+	double d;
+	ASSERT_NEVER_TASTED(dishHowMuchTasty(cpy,&d));
+	char name1[20];
+	char name2[20];
+	ingredientGetName(*(cpy->ingredients[0]),name1, 19);
+	ingredientGetName(ing,name2,19);
+	ASSERT_STRING_EQUALS(name1,name2);
+	
+	
+	Ingredient red = ingredientInitialize("filet of ish", PARVE, 3, 2, 1, NULL);
+	ASSERT_SUCCESS(dishAddIngredient(cpy,red));
+	
+	dishDestroy(src);
+	dishDestroy(cpy);
+
 	return true;
 }
 
-//TODO: add more tests
-static bool testAddIngredient() {
 
+static bool testAddIngredient() {
+	
 	Dish dish = dishCreate("Shanim Hasumot", "Shanim Bli Regesh", 2);
 	Ingredient ing1 = ingredientInitialize("Shanim Mehatsad", MEATY, 1, 1, 1, NULL);
 	Ingredient ing2 = ingredientInitialize("Menutak", MILKY, 1, 1, 1, NULL);
@@ -116,10 +140,16 @@ static bool testAddIngredient() {
 	ASSERT_FULL(dishAddIngredient(dish, ing3));
 
 	dishDestroy(dish);
+	
+	dish = dishCreate("word soup","noun noun",2);
+	ASSERT_SUCCESS(dishAddIngredient(dish, ing3));
+	dishTaste(dish,true);
+	ASSERT_ALREADY_TASTED(dishAddIngredient(dish, ing1));
+	
+	
 	return true;
 }
 
-//TODO: add more tests
 static bool testRemoveIngredient() {
 
 	ASSERT_NULL_ARGUMENT(dishRemoveIngredient(NULL, -1));
@@ -134,19 +164,29 @@ static bool testRemoveIngredient() {
 	dishAddIngredient(dish, ing1);
 
 	ASSERT_SUCCESS(dishRemoveIngredient(dish, 0));
+	ASSERT_INGREDIENT_NOT_FOUND(dishRemoveIngredient(dish, 1));
 	ASSERT_SUCCESS(dishRemoveIngredient(dish, 0));
 	ASSERT_INGREDIENT_NOT_FOUND(dishRemoveIngredient(dish, 0));
+
+	dishAddIngredient(dish, ing1);
+	dishTaste(dish,true);
+	ASSERT_ALREADY_TASTED(dishRemoveIngredient(dish,0));
 
 	dishDestroy(dish);
 	return true;
 }
 
-//TODO: add more tests
 static bool testGetName() {
+
 
 	Dish dish = dishCreate("Boiled Student", "Stav Doolman", 2);
 
 	char* name;
+
+	ASSERT_NULL_ARGUMENT(dishGetName(NULL,NULL));
+	ASSERT_NULL_ARGUMENT(dishGetName(NULL,&name));
+	ASSERT_NULL_ARGUMENT(dishGetName(dish,NULL));
+
 	ASSERT_SUCCESS(dishGetName(dish, &name));
 	ASSERT_STRING_EQUALS(name, "Boiled Student");
 	name[0] = 'B';
@@ -161,12 +201,18 @@ static bool testGetName() {
 	return true;
 }
 
-//TODO: add more tests
+
 static bool testGetCook() {
+
+	ASSERT_NULL_ARGUMENT(dishGetCook(NULL,NULL));
 
 	Dish dish = dishCreate("Rotten Shlomo", "Sarai Duek", 2);
 
 	char* cook;
+
+	ASSERT_NULL_ARGUMENT(dishGetCook(dish,NULL));
+	ASSERT_NULL_ARGUMENT(dishGetCook(NULL,&cook));
+
 	ASSERT_SUCCESS(dishGetCook(dish, &cook));
 	ASSERT_STRING_EQUALS(cook, "Sarai Duek");
 
@@ -175,13 +221,18 @@ static bool testGetCook() {
 	return true;
 }
 
-//TODO: add more tests
+
 static bool testSetName() {
 
 	Dish dish = dishCreate("Sweet & Sour Dor", "Ofer Givoli", 2);
 
 	ASSERT_SUCCESS(dishSetName(dish, "Just Dor"));
 	char* name;
+	
+	ASSERT_NULL_ARGUMENT(dishSetName(NULL,NULL));
+	ASSERT_NULL_ARGUMENT(dishSetName(NULL,"words"));
+	ASSERT_NULL_ARGUMENT(dishSetName(dish,NULL));
+	
 	dishGetName(dish, &name);
 	ASSERT_STRING_EQUALS(name, "Just Dor");
 	free(name);
@@ -197,8 +248,10 @@ static bool testSetName() {
 	return true;
 }
 
-//TODO: add more tests
+
 static bool testAreDuplicateIngredients() {
+
+	ASSERT_NULL_ARGUMENT(dishAreDuplicateIngredients(NULL,NULL));
 
 	Ingredient ing1 = ingredientInitialize("99 little bugs in the code", MEATY, 1, 1, 1, NULL);
 	Ingredient ing2 = ingredientInitialize("99 little bugs in the code", MEATY, 1, 1, 1, NULL);
@@ -208,6 +261,11 @@ static bool testAreDuplicateIngredients() {
 	Dish dish1 = dishCreate("Buggy Code", "Myself", 5);
 	Dish dish2 = dishCreate("Laggy Code", "You", 5);
 	bool isDuplicate;
+	
+	ASSERT_NULL_ARGUMENT(dishAreDuplicateIngredients(dish1,NULL));
+	ASSERT_NULL_ARGUMENT(dishAreDuplicateIngredients(NULL,&isDuplicate));
+	ASSERT_EMPTY(dishAreDuplicateIngredients(dish1,&isDuplicate));
+	ASSERT_FALSE(isDuplicate);
 
 	dishAddIngredient(dish1, ing1);
 	dishAddIngredient(dish1, ing2);
@@ -224,24 +282,34 @@ static bool testAreDuplicateIngredients() {
 	return true;
 }
 
-//TODO: add more tests
+
 static bool testTaste() {
 
+	Dish dish = dishCreate("soylent green","the government",2);
+
 	ASSERT_NULL_ARGUMENT(dishTaste(NULL, false));
+	ASSERT_SUCCESS(dishTaste(dish, false));
+	ASSERT_SUCCESS(dishTaste(dish, true));
 
 	return true;
 }
 
-//TODO: add more tests
+
 static bool testHowMuchTasty() {
 
 	Dish dish = dishCreate("Tasty", "Me of course", 1);
+	double tastiness;
+
+	ASSERT_NULL_ARGUMENT(dishHowMuchTasty(NULL,NULL));
+	ASSERT_NULL_ARGUMENT(dishHowMuchTasty(NULL,&tastiness));
+	ASSERT_NULL_ARGUMENT(dishHowMuchTasty(dish,NULL));
+	
+	ASSERT_NEVER_TASTED(dishHowMuchTasty(dish,&tastiness));
 
 	ASSERT_SUCCESS(dishTaste(dish, true));
 	ASSERT_SUCCESS(dishTaste(dish, true));
 	ASSERT_SUCCESS(dishTaste(dish, false));
 
-	double tastiness;
 	ASSERT_SUCCESS(dishHowMuchTasty(dish, &tastiness));
 	ASSERT_DOUBLE_EQUALS(tastiness, (double)2 / 3);
 
@@ -249,25 +317,44 @@ static bool testHowMuchTasty() {
 	return true;
 }
 
-//TODO: add more tests
+
 static bool testGetQuality() {
 
 	Dish dish = dishCreate("En Yoter Pahad", "En Yoter Klum", 2);
+	Dish dish2 = dishCreate("same food", "different order", 3);
 	Ingredient ing1 = ingredientInitialize("Ani Ish Kash", PARVE, 2000, 1, 1, NULL);
 	Ingredient ing2 = ingredientInitialize("Ani Etz Akum", PARVE, 0, 10, 1, NULL);
+	double quality;
+	double quality2;
 
+	ASSERT_EMPTY(dishGetQuality(dish,&quality));
 	dishAddIngredient(dish, ing1);
 	dishAddIngredient(dish, ing2);
+	dishAddIngredient(dish2, ing2);
+	dishAddIngredient(dish2, ing1);
 
-	double quality;
+
+	
 	ASSERT_SUCCESS(dishGetQuality(dish, &quality));
 	ASSERT_DOUBLE_EQUALS(quality, 5);
+	ASSERT_SUCCESS(dishGetQuality(dish2,&quality2));
+	ASSERT_DOUBLE_EQUALS(quality,quality2);
+
+	ASSERT_NULL_ARGUMENT(dishGetQuality(NULL,&quality));
+	ASSERT_NULL_ARGUMENT(dishGetQuality(NULL,NULL));
+	ASSERT_NULL_ARGUMENT(dishGetQuality(dish,NULL));
+
+	Dish clone = dishClone(dish2);
+	ASSERT_SUCCESS(dishGetQuality(clone,&quality));
+	ASSERT_DOUBLE_EQUALS(quality,quality2);
 
 	dishDestroy(dish);
+	dishDestroy(dish2);
+	dishDestroy(clone);
 	return true;
 }
 
-//TODO: add more tests
+
 static bool testIsBetter() {
 
 	Dish dish1 = dishCreate("Reva Shaa", "Mehake Barehov", 2);
@@ -285,20 +372,38 @@ static bool testIsBetter() {
 
 	dishDestroy(dish1);
 	dishDestroy(dish2);
+	
+	dish1 = dishCreate("plateholder","foodman",3);
+	dish2 = dishCreate("foie gras","goat cheese",2);
+	
+	dishAddIngredient(dish1,ing2);
+	dishAddIngredient(dish2,ing1);
+	
+	ASSERT_SUCCESS(dishIsBetter(dish2,dish1,0.7,&isBetter));
+	ASSERT_FALSE(isBetter);
+	
+	dishAddIngredient(dish1,ing1);
+	dishAddIngredient(dish2,ing2);
+	
+	ASSERT_SUCCESS(dishIsBetter(dish2,dish1,0.7,&isBetter));
+	ASSERT_FALSE(isBetter);
+	
+	dishAddIngredient(dish1,ing2);
+	
+	ASSERT_SUCCESS(dishIsBetter(dish1,dish2,0.7,&isBetter));
+	ASSERT_TRUE(isBetter);
+	
+	ASSERT_SUCCESS(dishIsBetter(dish1,dish2,0.3,&isBetter));
+	ASSERT_FALSE(isBetter);
+	
+	dishDestroy(dish1);
+	dishDestroy(dish2);
+	
 	return true;
 }
 
 int main() {
 
-	/* TODO: read
-	 * A challenge to the one with good taste:
-	 * 	Which songs can you recognize in the test?
-	 * 	Hint: I chose the big hits so it won't be very hard...
-	 * 	Email mtm@tx with the subject "songs", and state the test function
-	 * 	and the recognized song.
-	 * 	Those who will recognize all songs will get a suprise!
-	 * 		Unfortunately, the suprise will not include bonus points... :/
-	 */
 	RUN_TEST(testCreate);
 	RUN_TEST(testDestroy);
 	RUN_TEST(testClone);

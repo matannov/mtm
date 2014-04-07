@@ -27,7 +27,6 @@
  * Dish Struct
  ******************************************************************************/
 typedef struct dish_t {
-	/* adding properties as I go along */
 	char * name;
 	char * cook;
 	Ingredient ** ingredients;
