@@ -6,11 +6,11 @@ static Ingredient ingredientClone(Ingredient ingredient) {
 }
 
 Dish dishCreate(const char* name, const char* cook, int maxIngredients) {
-	IF_IS_NULL(name) {
+	if (name == NULL) {
 		return NULL;
 	}
 	
-	IF_IS_NULL(cook) {
+	if (cook == NULL) {
 		return NULL;
 	}
 	
@@ -19,18 +19,18 @@ Dish dishCreate(const char* name, const char* cook, int maxIngredients) {
 	}
 	
 	Dish dish = (Dish)malloc(sizeof(*dish));
-	IF_IS_NULL(dish) {
+	if (dish == NULL) {
 		return NULL;
 	}
 	dish->name = (char*)malloc(sizeof(char)*(strlen(name)+1));
-	IF_IS_NULL(dish->name) {
+	if (dish->name == NULL) {
 		dishDestroy(dish);
 		return NULL;
 	}
 	strcpy(dish->name,name);
 	
 	dish->cook = (char*)malloc(sizeof(char)*(strlen(cook)+1));
-	IF_IS_NULL(dish->cook) {
+	if (dish->cook == NULL) {
 		dishDestroy(dish);
 		return NULL;
 	}
@@ -40,8 +40,8 @@ Dish dishCreate(const char* name, const char* cook, int maxIngredients) {
 	dish->tasted = 0;
 	dish->liked = 0;
 	
-	dish->ingredients = (Ingredient**)malloc(sizeof(Ingredient*)*maxIngredients);
-	IF_IS_NULL(dish->ingredients) {
+	dish->ingredients=(Ingredient**)malloc(sizeof(Ingredient*)*maxIngredients);
+	if (dish->ingredients == NULL) {
 		dishDestroy(dish);
 		return NULL;
 	}
@@ -65,13 +65,13 @@ void dishDestroy(Dish dish) {
 }
 
 Dish dishClone(Dish source) {
-	IF_IS_NULL(source) {
+	if (source == NULL) {
 		return NULL;
 	}
-	IF_IS_NULL(source->name) {
+	if (source->name == NULL) {
 		return NULL;
 	}
-	IF_IS_NULL(source->cook) {
+	if (source->cook == NULL) {
 		return NULL;
 	}
 	Dish dish = dishCreate(source->name,source->cook,source->maxIngredients);
@@ -83,15 +83,16 @@ Dish dishClone(Dish source) {
 		if (source->ingredients[i] != NULL) {
 			sourceIngredient = *(source->ingredients[i]);
 			
-			
-			result = ingredientGetName(sourceIngredient,name,INGREDIENT_MAX_NAME_LENGTH);
+			result = ingredientGetName(sourceIngredient,name,
+										INGREDIENT_MAX_NAME_LENGTH);
 			if (result != INGREDIENT_SUCCESS) {
 				dishDestroy(dish);
 				return NULL;
 			}
 			
 			ingredient = ingredientInitialize(name, sourceIngredient.kosherType,
-							sourceIngredient.calories, sourceIngredient.health, sourceIngredient.cost, &result);
+							sourceIngredient.calories, sourceIngredient.health,
+							sourceIngredient.cost, &result);
 			if (result != INGREDIENT_SUCCESS) {
 				dishDestroy(dish);
 				return NULL;
@@ -106,7 +107,7 @@ Dish dishClone(Dish source) {
 }
 
 DishResult dishAddIngredient(Dish dish, Ingredient ingredient) {
-	NULL_ARG(dish)
+	CHECK_NULL_ARG(dish)
 	if (dish->currentIngredients == dish->maxIngredients) {
 		return DISH_IS_FULL;
 	}
@@ -118,18 +119,19 @@ DishResult dishAddIngredient(Dish dish, Ingredient ingredient) {
 	if (dish->tasted != 0) {
 		return DISH_ALREADY_TASTED;
 	}
-	dish->ingredients[dish->currentIngredients] = (Ingredient*)malloc(sizeof(Ingredient));
-	*(dish->ingredients[dish->currentIngredients]) = ingredientClone(ingredient);
+	dish->ingredients[dish->currentIngredients] = 
+										(Ingredient*)malloc(sizeof(Ingredient));
+	*(dish->ingredients[dish->currentIngredients])=ingredientClone(ingredient);
 	dish->currentIngredients++;
 	return DISH_SUCCESS;
 }
 
 DishResult dishRemoveIngredient(Dish dish, int index) {
-	NULL_ARG(dish)
-	IF_NOT_BETWEEN(index,0,dish->maxIngredients-1) {
+	CHECK_NULL_ARG(dish)
+	if ((0 > index) || (index > dish->maxIngredients-1)) {
 		return DISH_INGREDIENT_NOT_FOUND;
 	}
-	IF_IS_NULL(dish->ingredients[index]) {
+	if (dish->ingredients[index] == NULL) {
 		return DISH_INGREDIENT_NOT_FOUND;
 	}
 	if (dish->tasted != 0) {
@@ -145,10 +147,10 @@ DishResult dishRemoveIngredient(Dish dish, int index) {
 }
 
 DishResult dishGetName(Dish dish, char** name) {
-	NULL_ARG(dish)
-	NULL_ARG(name)
+	CHECK_NULL_ARG(dish)
+	CHECK_NULL_ARG(name)
 	char * buffer = (char*)malloc(sizeof(char)*(strlen(dish->name)+1));
-	IF_IS_NULL(buffer) {
+	if (buffer == NULL) {
 		return DISH_OUT_OF_MEMORY;
 	}
 	strcpy(buffer,dish->name);
@@ -157,10 +159,10 @@ DishResult dishGetName(Dish dish, char** name) {
 }
 
 DishResult dishGetCook(Dish dish, char** cook) {
-	NULL_ARG(dish)
-	NULL_ARG(cook)
+	CHECK_NULL_ARG(dish)
+	CHECK_NULL_ARG(cook)
 	char * buffer = (char*)malloc(sizeof(char)*(strlen(dish->cook)+1));
-	IF_IS_NULL(buffer) {
+	if (buffer == NULL) {
 		return DISH_OUT_OF_MEMORY;
 	}
 	strcpy(buffer,dish->cook);
@@ -169,10 +171,10 @@ DishResult dishGetCook(Dish dish, char** cook) {
 }
 
 DishResult dishSetName(Dish dish, const char* name) {
-	NULL_ARG(dish)
-	NULL_ARG(name)
+	CHECK_NULL_ARG(dish)
+	CHECK_NULL_ARG(name)
 	char * newName = (char*)malloc(sizeof(char)*(strlen(name)+1));
-	IF_IS_NULL(newName) {
+	if (newName == NULL) {
 		return DISH_OUT_OF_MEMORY;
 	}
 	strcpy(newName,name);
@@ -182,15 +184,16 @@ DishResult dishSetName(Dish dish, const char* name) {
 }
 
 DishResult dishAreDuplicateIngredients(Dish dish, bool* areDuplicate) {
-	NULL_ARG(dish)
-	NULL_ARG(areDuplicate)
+	CHECK_NULL_ARG(dish)
+	CHECK_NULL_ARG(areDuplicate)
 	*areDuplicate = false;
 	if (dish->currentIngredients == 0) {
 		return DISH_IS_EMPTY;
 	}
 	for (int i = 0;i<dish->currentIngredients;i++) {
 		for (int j = i+1;j<dish->currentIngredients;j++) {
-			if (strcmp(dish->ingredients[i]->name,dish->ingredients[j]->name) == 0) {
+			if (strcmp(dish->ingredients[i]->name,
+						dish->ingredients[j]->name) == 0) {
 				*areDuplicate = true;
 			}
 		}
@@ -199,7 +202,7 @@ DishResult dishAreDuplicateIngredients(Dish dish, bool* areDuplicate) {
 }
 
 DishResult dishTaste(Dish dish, bool liked) {
-	NULL_ARG(dish)
+	CHECK_NULL_ARG(dish)
 	dish->tasted++;
 	if (liked == true) {
 		dish->liked++;
@@ -208,8 +211,8 @@ DishResult dishTaste(Dish dish, bool liked) {
 }
 
 DishResult dishHowMuchTasty(Dish dish, double* tastiness) {
-	NULL_ARG(dish)
-	NULL_ARG(tastiness)
+	CHECK_NULL_ARG(dish)
+	CHECK_NULL_ARG(tastiness)
 	if (dish->tasted == 0) {
 		return DISH_NEVER_TASTED;
 	}
@@ -219,8 +222,8 @@ DishResult dishHowMuchTasty(Dish dish, double* tastiness) {
 }
 
 DishResult dishGetQuality(Dish dish, double* quality) {
-	NULL_ARG(dish)
-	NULL_ARG(quality);
+	CHECK_NULL_ARG(dish)
+	CHECK_NULL_ARG(quality);
 	if (dish->currentIngredients == 0) {
 		return DISH_IS_EMPTY;
 	}
@@ -232,11 +235,12 @@ DishResult dishGetQuality(Dish dish, double* quality) {
 	return DISH_SUCCESS;
 }
 
-DishResult dishIsBetter(Dish dish1, Dish dish2, double flexibility, bool* isBetter) {
-	NULL_ARG(dish1)
-	NULL_ARG(dish2)
-	NULL_ARG(isBetter)
-	IF_NOT_BETWEEN(flexibility,0,1) {
+DishResult dishIsBetter(Dish dish1, Dish dish2,
+						double flexibility, bool* isBetter) {
+	CHECK_NULL_ARG(dish1)
+	CHECK_NULL_ARG(dish2)
+	CHECK_NULL_ARG(isBetter)
+	if ((0 > flexibility) || (flexibility > 1)) {
 		return DISH_INVALID_FLEXIBILITY;
 	}
 	*isBetter = true;
@@ -262,17 +266,3 @@ DishResult dishIsBetter(Dish dish1, Dish dish2, double flexibility, bool* isBett
 	}
 	return DISH_SUCCESS;
 }
-/*
-typedef enum {
-	DISH_SUCCESS,				 Operation succeeded 						  
-	DISH_NULL_ARGUMENT,			 A NULL argument was passed 				  
-	DISH_INVALID_FLEXIBILITY,	 An invalid flexibility was passed		  
-	DISH_IS_FULL,				 Operation aborted because the dish is full 
-	DISH_KOSHER_VIOLATION,		 Operation aboured because it violates
-							   	   kosher laws								  
-	DISH_INGREDIENT_NOT_FOUND,	 The requested ingredient wasn't found	  
-	DISH_IS_EMPTY,				 The given dish is empty					  
-	DISH_ALREADY_TASTED,		 The dish was already tasted				  
-	DISH_NEVER_TASTED,			 The dish was never tasted				  
-	DISH_OUT_OF_MEMORY			 A memory error occured					  
-} DishResult; */

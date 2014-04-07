@@ -13,8 +13,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include <stdio.h>
-#include <string.h>
 
 /*******************************************************************************
  * Defines & Enums
@@ -32,25 +30,11 @@
 
 #define INGREDIENT_KOSHER_TYPE_VALUES 3
 
-#define SET_RESULT(result,ptr) \
-		if (ptr != NULL) { \
-			*ptr = result; \
-		}
-		
-#define IF_NOT_BETWEEN(val,min,max) \
-		if ((min > val) || (val > max))
-		
-#define IF_IS_NULL(val) \
-	if (val == NULL)
-	
-#define IF_NOT(val) \
-	if (!(val))
-
 typedef enum {
 	MEATY, MILKY, PARVE
 } KosherType;
 
-#define DOUBLE_EQUALS(a,b) (abs((a) - (b)) <= 1e-6)
+#define DOUBLE_EQUALS(a,b) (fabs((a) - (b)) <= 1e-6)
 
 /*******************************************************************************
  * Ingredient Struct
@@ -134,7 +118,7 @@ IngredientResult ingredientGetName(Ingredient ingredient, char* buffer, int leng
  * If such a condition is not met, INGREDIENT_BAD_COST should be returned.
  *
  * The discount should be an integer between 0 and 100 (inclusive).
- * If the discount is invalid, INGREDIENT_BAD_DISCOUNT should be returned.
+ * You may assume the given discount value is correct.
  *
  * @param ingredient A pointer to the ingredient that needs updating
  * @param cost The ingredient's new base cost
@@ -173,10 +157,10 @@ bool ingredientIsCheaper(Ingredient ingredient1, Ingredient ingredient2);
 /*
  * Returns true if ingredient1 is better than ingredient2.
  *
- * Ingredient1 is said to be better than ingredient2 if it's healthier, has
- * less calories and is cheaper.
- * Note: all the inequalities in the definition are *strong* inequalities.
- * Note: An ingredient is "healthier" if it has a bigger health value.
+ * Ingredient1 is said to be better than ingredient2 if it's cheaper and
+ * of better quality.
+ * The definition of "cheaper" and "of better quality" is the same as in
+ * ingredientIsCheaper and ingredientGetQuality.
  *
  * @param ingredient1 The first ingredient
  * @param ingredient2 The second ingredient

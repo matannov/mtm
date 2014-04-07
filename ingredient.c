@@ -8,12 +8,12 @@
 #define IN_RANGE(value, min, max) \
 	(((value) >= (min) && (value) <= (max)) ? true : false)
 	
-#define NULL_ARG(val) \
+#define  CHECK_NULL_ARG(val) \
 	if (val == NULL) {	return INGREDIENT_NULL_ARGUMENT;	}
 
-/*******************************************************************************
+/******************************************************************************
  * static internal functions
- ******************************************************************************/
+ *****************************************************************************/
 static bool isValidName(const char* name) {
 	int const INGREDIENT_MIN_NAME_LENGTH = 1;
 	return IN_RANGE(strlen(name), INGREDIENT_MIN_NAME_LENGTH, 
@@ -40,10 +40,14 @@ static bool isValidCost(double cost) {
 	return (isfinite(cost) && cost >= INGREDIENT_MIN_COST);
 }
 
+static bool isValidDiscount(double discount) {
+	return IN_RANGE(discount,0,100);
+}
+
 static IngredientResult checkInputForInitialize(const char* name, KosherType 
 	kosherType, int calories, int health, double cost) {
 
-	NULL_ARG(name)
+	 CHECK_NULL_ARG(name)
 
 	if(!isValidName(name)) {
 		return INGREDIENT_BAD_NAME;
@@ -63,9 +67,9 @@ static IngredientResult checkInputForInitialize(const char* name, KosherType
 	return INGREDIENT_SUCCESS;
 }
 
-/*******************************************************************************
+/******************************************************************************
  * interface functions
- ******************************************************************************/
+ *****************************************************************************/
 
 Ingredient ingredientInitialize(const char* name, KosherType kosherType,
 	int calories, int health, double cost, IngredientResult* result) {
@@ -92,7 +96,7 @@ Ingredient ingredientInitialize(const char* name, KosherType kosherType,
 
 IngredientResult ingredientGetName(Ingredient ingredient, char* buffer, 
 	int length) {
-	NULL_ARG(buffer)
+	 CHECK_NULL_ARG(buffer)
 	
 	if(length < 0 || strlen(ingredient.name) + 1 > length) {
 		return INGREDIENT_SMALL_BUFFER;
@@ -102,13 +106,14 @@ IngredientResult ingredientGetName(Ingredient ingredient, char* buffer,
 	return INGREDIENT_SUCCESS;
 }
 
-IngredientResult ingredientChangeCost(Ingredient* ingredient, double cost, int discount)	{
-	NULL_ARG(ingredient)
+IngredientResult ingredientChangeCost(Ingredient* ingredient,
+										double cost, int discount)	{
+	 CHECK_NULL_ARG(ingredient)
 	
 	if (!isValidCost(cost)) {
 		return INGREDIENT_BAD_COST;
 	}
-	IF_NOT_BETWEEN(discount,0,100) {
+	if (!isValidDiscount(discount)) {
 		return INGREDIENT_BAD_DISCOUNT;
 	}
 	ingredient->cost = cost*(1-(discount*0.01));
@@ -124,8 +129,10 @@ double ingredientGetQuality(Ingredient ingredient)	{
 	if ((INGREDIENT_MAX_HEALTH-INGREDIENT_MIN_HEALTH) == 0) {
 		return INGREDIENT_BAD_HEALTH;
 	}
-	calories = ingredient.calories*(10.0/(INGREDIENT_MAX_CALORIES-INGREDIENT_MIN_CALORIES));
-	health = ingredient.health*(10.0/(INGREDIENT_MAX_HEALTH-INGREDIENT_MIN_HEALTH));
+	int calorieRange = (INGREDIENT_MAX_CALORIES-INGREDIENT_MIN_CALORIES);
+	int healthRange = (INGREDIENT_MAX_HEALTH-INGREDIENT_MIN_HEALTH);
+	calories = ingredient.calories*(10.0/calorieRange);
+	health = ingredient.health*(10.0/healthRange);
 	if (health-calories > 0) {
 		return health-calories;
 	}
@@ -139,14 +146,16 @@ bool ingredientIsCheaper(Ingredient ingredient1, Ingredient ingredient2)	{
 	return false;
 }
 
-static bool ingredientHasLessCalories(Ingredient ingredient1, Ingredient ingredient2) {
+static bool ingredientHasLessCalories(Ingredient ingredient1,
+									Ingredient ingredient2) {
 	if (ingredient1.calories < ingredient2.calories) {
 		return true;
 	}
 	return false;
 }
 
-static bool ingredientIsHealthier(Ingredient ingredient1, Ingredient ingredient2) {
+static bool ingredientIsHealthier(Ingredient ingredient1,
+								Ingredient ingredient2) {
 	if (ingredient1.health > ingredient2.health) {
 		return true;
 	}
@@ -154,13 +163,13 @@ static bool ingredientIsHealthier(Ingredient ingredient1, Ingredient ingredient2
 }
 
 bool ingredientIsBetter(Ingredient ingredient1, Ingredient ingredient2)	{
-	IF_NOT(ingredientIsCheaper(ingredient1,ingredient2)) {
+	if (!ingredientIsCheaper(ingredient1,ingredient2)) {
 		return false;
 	}
-	IF_NOT(ingredientHasLessCalories(ingredient1,ingredient2)) {
+	if (!ingredientHasLessCalories(ingredient1,ingredient2)) {
 		return false;
 	}
-	IF_NOT(ingredientIsHealthier(ingredient1,ingredient2)) {
+	if (!ingredientIsHealthier(ingredient1,ingredient2)) {
 		return false;
 	}
 	return true;

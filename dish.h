@@ -12,14 +12,18 @@
  * Includes
  ******************************************************************************/
 #include "ingredient.h"
+#include <stdlib.h>
+#include <math.h>
+#include <stdbool.h>
+#include <string.h>
 
 #define SAFE_FREE(val) \
 	if (val != NULL) { \
 		free(val); \
 	}
 
-#define NULL_ARG(val) \
-	IF_IS_NULL(val) { \
+#define CHECK_NULL_ARG(val) \
+	if (val == NULL) { \
 		return DISH_NULL_ARGUMENT; \
 	}
 
