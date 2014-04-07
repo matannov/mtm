@@ -1,9 +1,5 @@
 #include "dish.h"
 
-static Ingredient ingredientClone(Ingredient ingredient) {
-	return ingredientInitialize(ingredient.name, ingredient.kosherType,
-		ingredient.calories, ingredient.health, ingredient.cost, NULL);
-}
 
 Dish dishCreate(const char* name, const char* cook, int maxIngredients) {
 	if (name == NULL) {
@@ -121,7 +117,9 @@ DishResult dishAddIngredient(Dish dish, Ingredient ingredient) {
 	}
 	dish->ingredients[dish->currentIngredients] = 
 										(Ingredient*)malloc(sizeof(Ingredient));
-	*(dish->ingredients[dish->currentIngredients])=ingredientClone(ingredient);
+	*(dish->ingredients[dish->currentIngredients])=
+					ingredientInitialize(ingredient.name, ingredient.kosherType,
+				ingredient.calories, ingredient.health, ingredient.cost, NULL);
 	dish->currentIngredients++;
 	return DISH_SUCCESS;
 }
