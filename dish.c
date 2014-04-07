@@ -51,13 +51,13 @@ void dishDestroy(Dish dish) {
 	if (dish == NULL) {
 		return;
 	}
-	SAFE_FREE(dish->name);
-	SAFE_FREE(dish->cook);
+	free(dish->name);
+	free(dish->cook);
 	for (int i=0;i<dish->maxIngredients;i++) {
-		SAFE_FREE(dish->ingredients[i]);
+		free(dish->ingredients[i]);
 	}
-	SAFE_FREE(dish->ingredients);
-	SAFE_FREE(dish);
+	free(dish->ingredients);
+	free(dish);
 }
 
 Dish dishClone(Dish source) {

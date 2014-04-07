@@ -17,10 +17,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define SAFE_FREE(val) \
-	if (val != NULL) { \
-		free(val); \
-	}
 
 #define CHECK_NULL_ARG(val) \
 	if (val == NULL) { \
